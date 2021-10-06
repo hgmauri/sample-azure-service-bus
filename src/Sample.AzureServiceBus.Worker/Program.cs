@@ -30,7 +30,7 @@ var host = Host.CreateDefaultBuilder(args)
                     h.OperationTimeout = TimeSpan.FromSeconds(30);
                 });
 
-                cfg.ReceiveEndpoint("masstransitreceiver", c =>
+                cfg.ReceiveEndpoint("subscription-clientmodel", c =>
                 {
                     c.EnablePartitioning = true;
                     c.Consumer<WorkerClient>(provider);
@@ -45,4 +45,4 @@ host.StartAsync();
 
 Console.WriteLine("Waiting for new messages.");
 
-while (true) ;
+while (true);
