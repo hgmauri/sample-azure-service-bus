@@ -1,8 +1,7 @@
-using System;
+using GreenPipes;
 using MassTransit;
-using MassTransit.Azure.ServiceBus.Core;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+using Sample.AzureServiceBus.WebApi.Core.Abstractions;
+using Sample.AzureServiceBus.WebApi.Core.Models;
 using Sample.AzureServiceBus.Worker.Workers;
 
 var configuration = new ConfigurationBuilder()
@@ -21,8 +20,9 @@ var host = Host.CreateDefaultBuilder(args)
     {
         collection.AddMassTransit(x =>
         {
-            x.AddConsumer<WorkerClient>();
-            x.AddBus(provider => AzureBusFactory.CreateUsingServiceBus(cfg =>
+            x.AddConsumer<WorkerClientConsumer>();
+
+            x.UsingAzureServiceBus((context, cfg) =>
             {
                 cfg.Host(configuration.GetConnectionString("AzureServiceBus"), h =>
                 {
@@ -30,12 +30,14 @@ var host = Host.CreateDefaultBuilder(args)
                     h.OperationTimeout = TimeSpan.FromSeconds(30);
                 });
 
-                cfg.ReceiveEndpoint("subscription-clientmodel", c =>
+                cfg.Message<ClientInsertedEvent>(conf => conf.SetEntityName(BusMessagens.PublishClientInserted));
+
+                cfg.SubscriptionEndpoint<ClientInsertedEvent>(BusMessagens.SubscribeClientInserted, conf =>
                 {
-                    c.EnablePartitioning = true;
-                    c.Consumer<WorkerClient>(provider);
+                    conf.UseMessageRetry(r => r.Immediate(1));
+                    conf.ConfigureConsumer<WorkerClientConsumer>(context);
                 });
-            }));
+            });
         });
         collection.AddMassTransitHostedService(true);
     })
@@ -45,4 +47,4 @@ host.StartAsync();
 
 Console.WriteLine("Waiting for new messages.");
 
-while (true);
+while (true) ;

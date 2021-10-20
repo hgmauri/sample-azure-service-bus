@@ -2,6 +2,7 @@
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Sample.AzureServiceBus.WebApi.Core.Abstractions;
 using Sample.AzureServiceBus.WebApi.Core.Models;
 
 namespace Sample.AzureServiceBus.WebApi.Core.Extensions
@@ -16,6 +17,12 @@ namespace Sample.AzureServiceBus.WebApi.Core.Extensions
                 {
                     var connectionString = configuration.GetConnectionString("AzureServiceBus");
                     cfg.Host(connectionString);
+
+                    cfg.Message<ClientInsertedEvent>(cfgTopology =>
+                    {
+                        cfgTopology.SetEntityName(BusMessagens.PublishClientInserted);
+                    });
+
                     cfg.ConfigureEndpoints(context);
                 });
             });
