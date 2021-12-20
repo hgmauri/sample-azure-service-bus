@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Sample.AzureServiceBus.WebApi.Core.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);

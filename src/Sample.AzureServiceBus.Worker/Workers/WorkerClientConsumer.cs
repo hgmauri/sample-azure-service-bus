@@ -1,4 +1,7 @@
+using GreenPipes;
 using MassTransit;
+using MassTransit.ConsumeConfigurators;
+using MassTransit.Definition;
 using Sample.AzureServiceBus.WebApi.Core.Models;
 
 namespace Sample.AzureServiceBus.Worker.Workers
@@ -12,6 +15,14 @@ namespace Sample.AzureServiceBus.Worker.Workers
 
             Console.WriteLine($"Receive client: {id} - {name}");
             return Task.CompletedTask;
+        }
+    }
+
+    public class WorkerClientConsumerDefinition : ConsumerDefinition<WorkerClientConsumer>
+    {
+        protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator, IConsumerConfigurator<WorkerClientConsumer> consumerConfigurator)
+        {
+            consumerConfigurator.UseMessageRetry(retry => retry.Interval(3, TimeSpan.FromSeconds(5)));
         }
     }
 }

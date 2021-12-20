@@ -1,9 +1,8 @@
-﻿using System;
+﻿using GreenPipes;
 using MassTransit;
+using MassTransit.Definition;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Sample.AzureServiceBus.WebApi.Core.Abstractions;
-using Sample.AzureServiceBus.WebApi.Core.Models;
 
 namespace Sample.AzureServiceBus.WebApi.Core.Extensions
 {
@@ -13,17 +12,15 @@ namespace Sample.AzureServiceBus.WebApi.Core.Extensions
         {
             services.AddMassTransit(x =>
             {
-                x.UsingAzureServiceBus((context, cfg) =>
+                x.SetKebabCaseEndpointNameFormatter();
+
+                x.UsingAzureServiceBus((ctx, cfg) =>
                 {
                     var connectionString = configuration.GetConnectionString("AzureServiceBus");
                     cfg.Host(connectionString);
 
-                    cfg.Message<ClientInsertedEvent>(cfgTopology =>
-                    {
-                        cfgTopology.SetEntityName(BusMessagens.PublishClientInserted);
-                    });
-
-                    cfg.ConfigureEndpoints(context);
+                    cfg.ConfigureEndpoints(ctx, new KebabCaseEndpointNameFormatter("dev", false));
+                    cfg.UseMessageRetry(retry => { retry.Interval(3, TimeSpan.FromSeconds(5)); });
                 });
             });
             services.AddMassTransitHostedService();
